@@ -1,6 +1,3 @@
- if Value then
-            task.spawn(function()
-
 gateCFrame = CFrame.new(-2863.94482, 135.067871, 4350.84229, 0.961155593, 5.50168515e-08, 0.276007086, -4.58816203e-08, 1, -3.95550472e-08, -0.276007086, 2.5354904e-08, 0.961155593)
 
             -- Checking if player is not in boss queue or boss fight
@@ -163,7 +160,3 @@ gateCFrame = CFrame.new(-2863.94482, 135.067871, 4350.84229, 0.961155593, 5.5016
             GuiService.SelectedObject = replayButton
             game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.Return, false, player)
             game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.Return, false, player)
-            end)
-        else
-            print("Investigation farm disabled.")
-        end
