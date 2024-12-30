@@ -1,22 +1,3 @@
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local rootPart = character:WaitForChild("HumanoidRootPart")
-local mobsFolder = workspace:WaitForChild("Objects"):WaitForChild("Mobs")
-local missionItemsFolder = workspace:WaitForChild("Objects"):WaitForChild("MissionItems")
-local playerGui = player:WaitForChild("PlayerGui")
-local lootGui = playerGui:WaitForChild("Loot")
-local flipButton = lootGui:WaitForChild("Frame"):WaitForChild("Flip")
-local replayButton = playerGui:WaitForChild("ReadyScreen"):WaitForChild("Frame"):WaitForChild("Replay")
-local dropsFolder = workspace:WaitForChild("Objects"):WaitForChild("Drops")
-local GuiService = game:GetService("GuiService")
-local gateCFrame = nil
-local taskDescription = playerGui:WaitForChild("StorylineDialogue"):WaitForChild("Frame"):WaitForChild("QuestFrame"):WaitForChild("QuestInfo"):WaitForChild("Task"):WaitForChild("Description")
-local resultsGui = playerGui:WaitForChild("Results")
-local responseTextLabel = playerGui:WaitForChild("StorylineDialogue"):WaitForChild("Frame"):WaitForChild("Dialogue"):WaitForChild("Response")
-local boss = nil
-local difficulty = "Nightmare"
-local lobbyPassword = ""
-
 if Value then
             task.spawn(function()
 
