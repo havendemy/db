@@ -1,0 +1,169 @@
+ if Value then
+            task.spawn(function()
+
+gateCFrame = CFrame.new(-2863.94482, 135.067871, 4350.84229, 0.961155593, 5.50168515e-08, 0.276007086, -4.58816203e-08, 1, -3.95550472e-08, -0.276007086, 2.5354904e-08, 0.961155593)
+
+            -- Checking if player is not in boss queue or boss fight
+            if game.PlaceId ~= 78904562518018 and game.PlaceId ~= 16379684339 then
+                game:GetService("TeleportService"):Teleport(78904562518018, player)
+
+            -- If player is in investigation queue
+            elseif game.PlaceId == 78904562518018 then
+
+                local args = {
+                    [1] = "Investigation",
+                    [2] = "Detention Center",
+                    [3] = difficulty,
+                    [4] = lobbyPassword
+                }
+
+                game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Raids"):WaitForChild("CreateLobby"):InvokeServer(unpack(args))
+                game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Server"):WaitForChild("Raids"):WaitForChild("StartLobby"):InvokeServer(unpack(args))
+            end
+
+            -- Create a safe spot if it doesn't already exist
+            local player = game.Players.LocalPlayer
+            local character = player.Character or player.CharacterAdded:Wait()
+            local rootPart = character:WaitForChild("HumanoidRootPart")
+
+            local safeSpot = workspace:FindFirstChild("SafeSpot")
+            if not safeSpot then
+                safeSpot = Instance.new("Part")
+                safeSpot.Size = Vector3.new(10, 1, 10)
+                safeSpot.Position = rootPart.Position + Vector3.new(0, 50, 0)
+                safeSpot.Anchored = true
+                safeSpot.BrickColor = BrickColor.new("Bright green")
+                safeSpot.Name = "SafeSpot"
+                safeSpot.Parent = workspace
+            end
+
+            -- BossTab loop
+            while not responseTextLabel.Text:find("Well done") do
+                local objective = taskDescription.Text
+
+                -- Skip dialogue
+                if playerGui.StorylineDialogue.Frame.Dialogue.Skip.Visible == true and playerGui.StorylineDialogue.Frame.Dialogue.Skip.TextLabel.Text == "Skip (0/1)" then
+                    game:GetService("ReplicatedStorage").Remotes.Client.StorylineDialogueSkip:FireServer()
+                end
+
+                -- Process objectives
+                if objective:match("^Exorcise") then
+                    for _, mob in ipairs(mobsFolder:GetChildren()) do
+                        if mob:IsA("Model") then
+                            local humanoidRootPart = mob:FindFirstChild("HumanoidRootPart")
+                            local humanoid = mob:FindFirstChild("Humanoid")
+
+                            if humanoidRootPart and humanoidRootPart:IsA("BasePart") then
+                                rootPart.CFrame = humanoidRootPart.CFrame + Vector3.new(0, 2, 0)
+                                if humanoid and humanoid:IsA("Humanoid") then
+                                    humanoid.Health = 0
+                                end
+                            end
+                            wait(0.4)
+                        end
+                    end
+                    rootPart.CFrame = CFrame.new(safeSpot.Position + Vector3.new(0, 3, 0))
+
+                elseif objective:match("^Collect") then
+                    for _, cursedObject in ipairs(missionItemsFolder:GetChildren()) do
+                        if cursedObject:IsA("MeshPart") then
+                            local collectPrompt = cursedObject:FindFirstChild("Collect")
+                            if collectPrompt and collectPrompt:IsA("ProximityPrompt") then
+                                collectPrompt.HoldDuration = 0
+                                rootPart.CFrame = cursedObject.CFrame + Vector3.new(0, 2, 0)
+                                wait(0.35)
+                                fireproximityprompt(collectPrompt, 0)
+                                wait(0.1)
+                            end
+                        end
+                    end
+                    rootPart.CFrame = CFrame.new(safeSpot.Position + Vector3.new(0, 3, 0))
+
+                elseif objective:match("^Rescue") then
+                    for _, civilian in ipairs(missionItemsFolder:GetChildren()) do
+                        if civilian:IsA("Model") and civilian:FindFirstChild("PickUp") then
+                            local humanoidRootPart = civilian:FindFirstChild("HumanoidRootPart")
+                            local pickUpPrompt = civilian:FindFirstChild("PickUp")
+                            if humanoidRootPart and pickUpPrompt then
+                                pickUpPrompt.HoldDuration = 0
+                                rootPart.CFrame = humanoidRootPart.CFrame + Vector3.new(0, 2, 0)
+                                wait(0.4)
+                                fireproximityprompt(pickUpPrompt, 0)
+                                rootPart.CFrame = gateCFrame
+                                wait(0.5)
+                            end
+                        end
+                    end
+                   rootPart.CFrame = CFrame.new(safeSpot.Position + Vector3.new(0, 3, 0))
+                end
+                wait(5)
+            end
+
+            -- Handle results
+            repeat
+                wait(0.1)
+            until resultsGui.Enabled
+            wait(1.5)
+
+            -- Handle chest collection
+            local offset = CFrame.new(0, 0, -5)
+            dropsFolder:WaitForChild("Chest"):WaitForChild("Collect")
+            wait(0.5)
+
+            for _, chest in ipairs(dropsFolder:GetChildren()) do
+                if chest:IsA("Model") and chest:FindFirstChild("Collect") then
+                    local movingPart = chest:FindFirstChild("Meshes/box_Cube (1)", true)
+                    if movingPart then
+                        movingPart:Destroy()
+                    end
+
+                    local root = chest:FindFirstChild("Root")
+                    if root then
+                        root.CFrame = rootPart.CFrame * offset
+                    end
+                end
+            end
+
+            -- Additional chest collection logic
+            while true do
+                local chests = dropsFolder:GetChildren()
+
+                if #chests == 0 then
+                    while lootGui.Enabled do
+                        GuiService.SelectedObject = flipButton
+                        wait()
+                        GuiService.SelectedObject = flipButton
+                        wait(0.1)
+                        game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.Return, false, player)
+                        game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.Return, false, player)
+                        wait(0.1)
+                    end
+                    break
+                end
+
+                for _, chest in ipairs(chests) do
+                    local collectPrompt = chest:FindFirstChild("Collect")
+                    if collectPrompt and collectPrompt:IsA("ProximityPrompt") then
+                        collectPrompt.MaxActivationDistance = 1000
+                        fireproximityprompt(collectPrompt, 0)
+                        while lootGui.Enabled do
+                            GuiService.SelectedObject = flipButton
+                            wait()
+                            game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.Return, false, player)
+                            game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.Return, false, player)
+                            wait(0.1)
+                        end
+                    end
+                end
+                wait(0.1)
+            end
+
+            print("All tasks and chest collection completed.")
+            wait(0.5)
+            GuiService.SelectedObject = replayButton
+            game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.Return, false, player)
+            game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.Return, false, player)
+            end)
+        else
+            print("Investigation farm disabled.")
+        end
